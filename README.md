@@ -1,92 +1,130 @@
-# SpendLens — AI Tool Spend Auditor
+# SpendLens - AI Tool Spend Auditor
 
-**SpendLens audits your team's AI subscriptions — Cursor, Copilot, Claude, ChatGPT, and more — and returns specific, dollar-quantified savings recommendations in under 2 minutes. Built for engineering team leads and CTOs who are paying for AI tools but aren't sure if they're on the right plans.**
+SpendLens audits your team's AI subscriptions - Cursor, Copilot, Claude, ChatGPT, and more - and returns specific, dollar-quantified savings recommendations in under 2 minutes. Built for engineering team leads and CTOs who are paying for AI tools but are not sure if they are on the right plans.
 
-🔗 **Live:** [spendlens.vercel.app](https://spendlens.vercel.app)
-
----
-
-## Screenshots
-
-> _Add a 30-second Loom recording at: https://loom.com/share/[your-link]_
-
-| Landing Page | Audit Form | Results |
-|---|---|---|
-| ![Landing Page](./public/images/landingpage.png) | ![Audit Form](./public/images/audit_form.png) | ![Results](./public/images/result.png) |
+Live URL: https://spendlens.vercel.app
 
 ---
 
-## Quick Start
+## Visual Overview
+
+<table width="100%">
+  <tr>
+    <td width="33.3%" align="center">
+      <strong>Landing Page</strong><br />
+      <img src="public/images/landingpage.png" alt="Landing Page" style="max-width:100%; border:1px solid #eaeaea; border-radius:6px; margin-top:8px;" />
+    </td>
+    <td width="33.3%" align="center">
+      <strong>Audit Form</strong><br />
+      <img src="public/images/audit_form.png" alt="Audit Form" style="max-width:100%; border:1px solid #eaeaea; border-radius:6px; margin-top:8px;" />
+    </td>
+    <td width="33.3%" align="center">
+      <strong>Results Dashboard</strong><br />
+      <img src="public/images/result.png" alt="Results Dashboard" style="max-width:100%; border:1px solid #eaeaea; border-radius:6px; margin-top:8px;" />
+    </td>
+  </tr>
+</table>
+
+---
+
+## Technical Documentation Index
+
+To support development, architecture review, and go-to-market strategies, the following core documents are included directly within this repository:
+
+### Engineering & Architecture
+* [Database Schema Definition (SCHEMA.sql)](SCHEMA.sql) - Production DDL layout, performance indices, and constraint setups for Supabase.
+* [Backend Structure Specification](docs/BACKEND_STRUCTURE.md) - Deep dive into Next.js API routing, background worker paradigms, and third-party webhooks.
+* [System Implementation Plan](docs/IMPLEMENTATION_PLAN.md) - The original Day 1 blueprint, architectural targets, and milestone plans.
+* [AI Prompts Specification](PROMPTS.md) - System instruction formats, fallback behaviors, and prompt templates for LLM generation.
+* [Test Suite & Quality Metrics](TESTS.md) - Coverage goals, test cases, and instructions for verifying calculations.
+* [Development Log (DEVLOG.md)](DEVLOG.md) - Day-by-day task breakdowns, hourly expenditure tracking, and active development log.
+
+### Business & Operations
+* [Go-To-Market Plan (GTM.md)](GTM.md) - Growth hacking frameworks, B2B outbound workflows, and customer acquisition strategies.
+* [SaaS Economics & Pricing Plan](ECONOMICS.md) - Cost-to-serve analysis, LTV projections, and gross margin targets.
+* [Analytical Metrics Plan (METRICS.md)](METRICS.md) - Trackable KPI parameters, telemetry metrics, and post-launch analytical instrumentation.
+* [Raw Pricing Matrix Data](PRICING_DATA.md) - The central mathematical pricing schemas used by the audit calculation engine.
+* [Market & User Research Summary](USER_INTERVIEWS.md) - Summaries of customer interviews, pain points, and pricing elasticity feedbacks.
+* [Retrospective Reflection (REFLECTION.md)](REFLECTION.md) - Post-launch reflection on technical trade-offs and achievements.
+
+---
+
+## Quick Start Guide
 
 ### Prerequisites
-- Node.js 18+
-- npm
+* Node.js 18 or higher
+* npm package manager
 
 ### Run Locally
 
+Follow these steps to set up and run the development server locally:
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/shubham-kumr/credit_audit_by_credex.git
+   cd credit_audit_by_credex
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Configure environment variables:
+   Create a local configuration file from the provided template:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Open `.env.local` and add your credentials. (Note: The core audit engine runs fully in client memory without any API keys. Database, rate-limiting, and AI summary configurations are optional for local testing).
+
+4. Spin up the local development environment:
+   ```bash
+   npm run dev
+   ```
+   Open http://localhost:3000 in your browser.
+
+### Run Verification Tests
+
+Run the Vitest mathematical execution verification suite:
 ```bash
-git clone https://github.com/shubham-kumr/credit_audit_by_credex.git
-cd credit_audit_by_credex
-npm install
-cp .env.example .env.local   # fill in values (all optional for local dev)
-npm run dev
+npm run test
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The audit engine runs fully without any API keys — Supabase, OpenRouter (DeepSeek), and Resend are all optional.
+### Production Deployment
 
-### Run Tests
+To package and deploy the optimized production bundle:
 
-```bash
-npm test
-```
-
-### Deploy to Vercel
-
-```bash
-# 1. Push to GitHub (already done)
-# 2. Import repo at vercel.com/new
-# 3. Set env vars from .env.example in Vercel dashboard
-# 4. Deploy — Vercel auto-detects Next.js
-```
+1. Push all latest changes to your GitHub branch.
+2. Link your repository inside your Vercel Dashboard (vercel.com/new).
+3. Set your environment variables (copied from `.env.local`) inside the Vercel Project Settings.
+4. Deploy. Vercel automatically detects Next.js build parameters and provisions optimized serverless runtimes.
 
 ---
 
-## Decisions
+## Feature Overview
 
-Five trade-offs made during the build and why:
-
-### 1. Client-side audit engine, not server-only
-The audit engine (`lib/audit-engine.ts`) is a pure function with no I/O. It runs in the browser on submit, returning results instantly before the API call even finishes. **Trade-off:** results are visible immediately but aren't shareable until the API persists them. The UX win (instant results) outweighed the edge case (user closes tab before API responds).
-
-### 2. Graceful degradation over hard dependencies
-Every external service (Supabase, Anthropic, Upstash, Resend) has a no-op fallback. If the API key is missing, the feature silently degrades. **Trade-off:** this hides misconfiguration errors. Accepted this because it makes local development frictionless and the MVP more robust in production.
-
-### 3. Inter only — no display/mono font split
-Originally used DM Serif Display for headings. Switched to Inter for everything. **Trade-off:** less typographic personality, but Inter at varying weights reads as professional and loads faster (one font file instead of three). The design is cleaner for a B2B finance-adjacent tool.
-
-### 4. Zustand + localStorage over React context or server state
-Form state lives in Zustand with localStorage persistence. **Trade-off:** state survives page refresh but can go stale if pricing data changes. Acceptable for an MVP where users fill the form in one session. Server-synced state would add latency to every keystroke.
-
-### 5. Template fallback for AI summary instead of streaming
-The OpenRouter (DeepSeek) API call completes before the response is returned. **Trade-off:** 3–4 second wait if AI is used, but the code is simple and the template fallback is instant. Streaming would have required a separate API route and client-side SSE handling — more complexity for a feature most users may not notice.
+* **Instant Client-Side Audit Engine** - Runs mathematically complex plan auditing entirely in the client browser, returning results in under 10 milliseconds.
+* **Coverage for 8 Essential AI Tools** - Fully audits plan-fit, seat-counts, and overspending across Cursor, GitHub Copilot, Claude, ChatGPT, OpenAI API, Anthropic API, Google Gemini, and Windsurf.
+* **Multi-Layer Audit Checks** - Detects seat redundancies, plan downgrading options, and dual-license overspend patterns.
+* **Instant Direct Gemini Summaries** - Adaptive LLM summaries powered directly by Gemini-Flash REST APIs, with zero-error local mathematical fallbacks.
+* **Persistent Shared Dashboards** - Automatic, permanently queryable Supabase slug routing for saving and sharing audit reports.
+* **Frictionless Lead Capture** - High-intent CTA capturing and automated mailer onboarding integrated with Resend.
+* **Global Rate-Limiting Protections** - Integrated Upstash Redis middleware limiting bot access on public endpoints.
 
 ---
 
-## Features
+## Tech Stack
 
-- **Instant audit** — runs client-side, zero latency  
-- **8 tools covered** — Cursor, GitHub Copilot, Claude, ChatGPT, OpenAI API, Anthropic API, Gemini, Windsurf  
-- **3 audit checks** — plan-fit, redundancy detection, overspend flagging  
-- **AI summary** — DeepSeek-generated plain-English summary with template fallback  
-- **Shareable results** — permanent slug URL for every audit  
-- **Lead capture** — email opt-in with Resend integration  
-
----
-
-## Stack
-
-Next.js 14 · TypeScript · Tailwind CSS · Zustand · Supabase · DeepSeek (OpenRouter) · Upstash Redis · Resend · Vercel
+* **Frontend Framework:** Next.js 14 (App Router)
+* **Language:** TypeScript
+* **Styling:** Tailwind CSS (Vanilla utilities)
+* **State Management:** Zustand (with localStorage persistence)
+* **Database & Auth:** Supabase (Postgres)
+* **AI Summary Engine:** Direct Google Gemini REST API (gemini-flash-latest)
+* **Rate Limiting:** Upstash Redis
+* **Transactional Mailer:** Resend
+* **Hosting Platform:** Vercel
 
 ---
 
-Built by [Credex](https://credex.rocks) — AI spend intelligence for engineering teams
+Built by Credex - AI spend intelligence for engineering teams
