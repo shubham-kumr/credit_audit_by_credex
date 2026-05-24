@@ -49,8 +49,15 @@ export async function POST(req: NextRequest) {
   const auditOutput = runAudit({ tools, team_size, use_case });
   const slug = client_slug ?? crypto.randomUUID();
 
-  // Attempt DB save (non-blocking — don't fail the response if Supabase isn't configured)
+  // Attempt DB save (don't fail the response if Supabase isn't configured)
   const { supabase } = await import('@/lib/supabase');
+  let aiSummary: string | null = null;
+  try {
+    aiSummary = await generateAISummary(auditOutput);
+  } catch (err) {
+    console.warn('[POST /api/audit] AI summary generation failed:', err);
+  }
+
   if (supabase) {
     try {
       const { error } = await supabase.from('audits').upsert({
@@ -62,18 +69,12 @@ export async function POST(req: NextRequest) {
         total_monthly_savings: auditOutput.total_monthly_savings,
         total_annual_savings: auditOutput.total_annual_savings,
         savings_tier: auditOutput.savings_tier,
+        ai_summary: aiSummary,
+        summary_generated: aiSummary ? true : false,
       });
 
       if (error) {
         console.error('[POST /api/audit] DB save error details:', error);
-      } else {
-        // AI summary async (fire and forget)
-        generateAISummary(auditOutput).then(async (summary) => {
-          const { error: updateErr } = await supabase!.from('audits').update({ ai_summary: summary, summary_generated: true }).eq('id', slug);
-          if (updateErr) {
-            console.error('[POST /api/audit] DB AI summary update error:', updateErr);
-          }
-        }).catch(() => {});
       }
     } catch (err) {
       console.error('[POST /api/audit] DB save failed:', err);
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
       total_monthly_savings: auditOutput.total_monthly_savings,
       total_annual_savings: auditOutput.total_annual_savings,
       savings_tier: auditOutput.savings_tier,
-      ai_summary: null,
+      ai_summary: aiSummary,
     },
     { status: 201 }
   );
