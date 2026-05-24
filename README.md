@@ -2,7 +2,7 @@
 
 SpendLens audits your team's AI subscriptions - Cursor, Copilot, Claude, ChatGPT, and more - and returns specific, dollar-quantified savings recommendations in under 2 minutes. Built for engineering team leads and CTOs who are paying for AI tools but are not sure if they are on the right plans.
 
-Live URL: https://spendlens.vercel.app
+Live URL: https://credexspendlens.vercel.app
 
 ---
 
