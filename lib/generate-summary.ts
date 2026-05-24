@@ -6,7 +6,7 @@
 import { AuditOutput } from './types';
 import { TOOL_DISPLAY_NAMES } from './pricing-data';
 
-const OPENROUTER_MODEL = 'deepseek/deepseek-v4-flash:free';
+const OPENROUTER_MODEL = 'openrouter/owl-alpha';
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 function buildSummaryPrompt(audit: AuditOutput): string {
