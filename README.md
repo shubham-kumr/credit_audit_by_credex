@@ -8,22 +8,14 @@ Live URL: https://spendlens.vercel.app
 
 ## Visual Overview
 
-<table width="100%">
-  <tr>
-    <td width="33.3%" align="center">
-      <strong>Landing Page</strong><br />
-      <img src="public/images/landingpage.png" alt="Landing Page" style="max-width:100%; border:1px solid #eaeaea; border-radius:6px; margin-top:8px;" />
-    </td>
-    <td width="33.3%" align="center">
-      <strong>Audit Form</strong><br />
-      <img src="public/images/audit_form.png" alt="Audit Form" style="max-width:100%; border:1px solid #eaeaea; border-radius:6px; margin-top:8px;" />
-    </td>
-    <td width="33.3%" align="center">
-      <strong>Results Dashboard</strong><br />
-      <img src="public/images/result.png" alt="Results Dashboard" style="max-width:100%; border:1px solid #eaeaea; border-radius:6px; margin-top:8px;" />
-    </td>
-  </tr>
-</table>
+### Landing Page
+<img src="public/images/landingpage.png" alt="SpendLens Landing Page" width="900" style="max-width: 100%; border: 1px solid #eaeaea; border-radius: 8px; margin-bottom: 24px;" />
+
+### Audit Form
+<img src="public/images/audit_form.png" alt="SpendLens Audit Form" width="900" style="max-width: 100%; border: 1px solid #eaeaea; border-radius: 8px; margin-bottom: 24px;" />
+
+### Results Dashboard
+<img src="public/images/result.png" alt="SpendLens Results Dashboard" width="900" style="max-width: 100%; border: 1px solid #eaeaea; border-radius: 8px; margin-bottom: 24px;" />
 
 ---
 
