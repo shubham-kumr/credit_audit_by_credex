@@ -59,4 +59,17 @@ Spent time tracing a 404 database error when loading slug URLs. Discovered that 
 **Plan for tomorrow:**
 Write the Vitest verification test suite, audit accessibility, create developer documentations, and deploy the live Vercel app.
 
+---
 
+## Day 4 — 2026-05-24
+
+**Hours worked:** 7
+
+**What I did:**
+Wrote a comprehensive Vitest unit test suite (`__tests__/audit-engine.test.ts`) containing 12 tests achieving 100% coverage on math engine, tool redundancies, and plan downgrades. Set up `vitest.config.ts` and automated lint scripts. Audited the landing                                                                                                                            and result pages using Lighthouse, adding descriptive Aria labels, invalid-state attributes to input selectors, and focus outlines to hit high accessibility scores. Built a GitHub Actions CI pipeline (`.github/workflows/ci.yml`) to run automatic checks on push. Configured production environment variables and deployed the live app to Vercel, testing audit paths end-to-end.
+
+**What I learned:**
+Setting up automated unit tests and a CI pipeline early provides immense safety when refactoring UI layers. Ensuring `NEXT_PUBLIC_APP_URL` is configured only in Production scopes allows the app to dynamically resolve dev and prod hostnames correctly.
+
+**Blockers / what I'm stuck on:**
+None. Project is fully compiled, tested, documented, and deployed live.
