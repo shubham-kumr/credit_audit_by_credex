@@ -38,11 +38,12 @@ export async function generateAISummary(audit: AuditOutput): Promise<string> {
   // If the key starts with 'AIzaSy', it is a native Google Gemini API key!
   if (apiKey.startsWith('AIzaSy')) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-goog-api-key': apiKey,
         },
         body: JSON.stringify({
           contents: [
@@ -58,7 +59,8 @@ export async function generateAISummary(audit: AuditOutput): Promise<string> {
       });
 
       if (!response.ok) {
-        console.warn('[AI Summary] Gemini direct API non-200:', response.status);
+        const errorText = await response.text();
+        console.warn(`[AI Summary] Gemini direct API non-200 (Status: ${response.status}):`, errorText);
         return generateFallbackSummary(audit);
       }
 
