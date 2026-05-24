@@ -7,7 +7,7 @@ Two informal discussions with friends and close professional connections conduct
 ## Interview 1 - Rahul, Engineering Lead at B2B Startup (Series A, 35 people)
 
 **Date:** May 22, 2026
-**Connection:** Close friend and former colleague, now connected on LinkedIn.
+**Connection:** University senior and LinkedIn connection.
 
 **Background:** Rahul manages a 12-person development team. Over the last year, team members started expensing different AI tools on their own. The company has never run an audit on these tools.
 
@@ -26,7 +26,7 @@ Two informal discussions with friends and close professional connections conduct
 ## Interview 2 - Pooja, Technical Founder at DevTools Startup (Bootstrapped, 4 people)
 
 **Date:** May 23, 2026
-**Connection:** University friend and active LinkedIn connection in the Bangalore tech network.
+**Connection:** College senior and active LinkedIn connection in the Bangalore tech network.
 
 **Background:** Pooja handles both development and finances. In a small bootstrapped team, every dollar matters. They currently pay for Cursor and Claude Team plans but want to optimize their expenses.
 
