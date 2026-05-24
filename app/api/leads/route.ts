@@ -90,59 +90,89 @@ async function sendConfirmationEmail({
   tier: string;
   audit_id: string;
 }) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return;
-
-  const { Resend } = await import('resend');
-  const resend = new Resend(resendKey);
-  let fromEmail = process.env.FROM_EMAIL ?? 'onboarding@resend.dev';
-  // Gmail/public domains cannot be sender addresses in Resend sandbox without custom domains
-  if (fromEmail.includes('@gmail.com') || fromEmail.includes('@yahoo.com') || fromEmail.includes('@outlook.com') || fromEmail.includes('@hotmail.com')) {
-    fromEmail = 'onboarding@resend.dev';
-  }
-
-  // Under Resend sandbox restrictions, we can only send to our own account email (shubhamkr6758@gmail.com).
-  // Automatically route sandbox emails to our own registered inbox so testing works perfectly!
-  const toEmail = fromEmail === 'onboarding@resend.dev' ? 'shubhamkr6758@gmail.com' : email;
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://spendlens.vercel.app';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://credexspendlens.vercel.app';
   const auditUrl = `${appUrl}/audit/${audit_id}`;
   const isHighIntent = tier === 'high_intent';
 
+  const subject = isHighIntent
+    ? 'Your AI spend audit — significant savings identified'
+    : 'Your AI spend audit from SpendLens';
+
+  const htmlContent = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; color: #292524;">
+      <h1 style="font-size: 24px; color: #2e9967; margin-bottom: 8px;">Your AI Spend Audit</h1>
+      <p style="color: #78716c; margin-bottom: 24px;">Thanks for using SpendLens. Here's your audit report.</p>
+      <a href="${auditUrl}" style="display: inline-block; background: #2e9967; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-bottom: 24px;">
+        View Full Audit →
+      </a>
+      ${isHighIntent ? `
+        <div style="background: #f0faf4; border: 1px solid #bbe5ce; border-radius: 8px; padding: 16px; margin-top: 16px;">
+          <p style="font-weight: 600; color: #1a6643; margin: 0 0 8px;">🎯 You qualify for a free Credex consultation</p>
+          <p style="color: #44403c; margin: 0 0 12px; font-size: 14px;">Your savings level means a Credex advisor can often unlock an additional 20%+ through our AI credit program.</p>
+          <a href="https://credex.rocks" style="color: #2e9967; font-weight: 600; font-size: 14px;">Book your free consultation →</a>
+        </div>
+      ` : ''}
+      <p style="font-size: 12px; color: #a8a29e; margin-top: 24px;">SpendLens by Credex · <a href="${appUrl}" style="color: #a8a29e;">spendlens.app</a></p>
+    </div>
+  `;
+
+  // 1. Hybrid SMTP support (e.g. Gmail SMTP)
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASSWORD;
+
+  if (smtpUser && smtpPass) {
+    try {
+      const nodemailer = await import('nodemailer');
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT) || 465,
+        secure: process.env.SMTP_SECURE !== 'false',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"SpendLens" <${smtpUser}>`,
+        to: email,
+        subject,
+        html: htmlContent,
+      });
+      return; // Succeeded using SMTP
+    } catch (smtpErr) {
+      console.error('[Email] SMTP send failed:', smtpErr);
+      // Fallback to Resend if SMTP fails
+    }
+  }
+
+  // 2. Fallback to standard Resend pipeline
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+
   try {
+    const { Resend } = await import('resend');
+    const resend = new Resend(resendKey);
+    let fromEmail = process.env.FROM_EMAIL ?? 'onboarding@resend.dev';
+    if (fromEmail.includes('@gmail.com') || fromEmail.includes('@yahoo.com') || fromEmail.includes('@outlook.com') || fromEmail.includes('@hotmail.com')) {
+      fromEmail = 'onboarding@resend.dev';
+    }
+
+    const toEmail = fromEmail === 'onboarding@resend.dev' ? 'shubhamkr6758@gmail.com' : email;
+
     await resend.emails.send({
       from: fromEmail,
       to: toEmail,
-      subject: isHighIntent
-        ? 'Your AI spend audit — significant savings identified'
-        : 'Your AI spend audit from SpendLens',
-      html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; color: #292524;">
-        <h1 style="font-size: 24px; color: #2e9967; margin-bottom: 8px;">Your AI Spend Audit</h1>
-        <p style="color: #78716c; margin-bottom: 24px;">Thanks for using SpendLens. Here's your audit report.</p>
-        <a href="${auditUrl}" style="display: inline-block; background: #2e9967; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; margin-bottom: 24px;">
-          View Full Audit →
-        </a>
-        ${isHighIntent ? `
-          <div style="background: #f0faf4; border: 1px solid #bbe5ce; border-radius: 8px; padding: 16px; margin-top: 16px;">
-            <p style="font-weight: 600; color: #1a6643; margin: 0 0 8px;">🎯 You qualify for a free Credex consultation</p>
-            <p style="color: #44403c; margin: 0 0 12px; font-size: 14px;">Your savings level means a Credex advisor can often unlock an additional 20%+ through our AI credit program.</p>
-            <a href="https://credex.rocks" style="color: #2e9967; font-weight: 600; font-size: 14px;">Book your free consultation →</a>
-          </div>
-        ` : ''}
-        <p style="font-size: 12px; color: #a8a29e; margin-top: 24px;">SpendLens by Credex · <a href="${appUrl}" style="color: #a8a29e;">spendlens.app</a></p>
-      </div>
-    `,
+      subject,
+      html: htmlContent,
     });
   } catch (err: unknown) {
-    // Resend test-domain restriction: onboarding@resend.dev can only send to your own account email.
-    // Fix: verify a domain at resend.com/domains and update FROM_EMAIL env var.
     const msg = err instanceof Error ? err.message : String(err);
     if (msg.includes('verify a domain') || msg.includes('validation_error')) {
       console.warn('[Email] Resend test-domain — skipped for', email,
         '| Fix: verify domain at resend.com/domains, set FROM_EMAIL=you@yourdomain.com');
     } else {
-      console.warn('[Email] send failed:', msg);
+      console.warn('[Email] Resend send failed:', msg);
     }
   }
 }
