@@ -32,9 +32,46 @@ export function generateFallbackSummary(audit: AuditOutput): string {
 }
 
 export async function generateAISummary(audit: AuditOutput): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.OPENROUTER_API_KEY;
   if (!apiKey) return generateFallbackSummary(audit);
 
+  // If the key starts with 'AIzaSy', it is a native Google Gemini API key!
+  if (apiKey.startsWith('AIzaSy')) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: buildSummaryPrompt(audit),
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn('[AI Summary] Gemini direct API non-200:', response.status);
+        return generateFallbackSummary(audit);
+      }
+
+      const data = await response.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      return text || generateFallbackSummary(audit);
+    } catch (err) {
+      console.warn('[AI Summary] Gemini direct API failed:', err);
+      return generateFallbackSummary(audit);
+    }
+  }
+
+  // Fallback to standard OpenRouter pipeline
   try {
     const response = await fetch(OPENROUTER_URL, {
       method: 'POST',
