@@ -30,6 +30,9 @@ export async function GET(
     .single();
 
   if (error || !data) {
+    if (error) {
+      console.error(`[GET /api/audit/[slug]] Database fetch error for slug ${slug}:`, error);
+    }
     return NextResponse.json(
       { error: { code: 'NOT_FOUND', message: 'Audit not found' } },
       { status: 404 }
