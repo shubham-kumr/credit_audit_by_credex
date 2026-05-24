@@ -99,16 +99,33 @@ export default function SpendForm() {
       JSON.stringify({ slug, input: auditInput, ...auditOutput, ai_summary: null, summary_generated: false })
     );
 
-    // Attempt to persist to DB in the background (non-blocking)
-    fetch('/api/audit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...auditInput, client_slug: slug }),
-    }).catch(() => {
-      // Silently fail — results are already in sessionStorage
-    });
+    let aiSummary = null;
+    let summaryGenerated = false;
 
-    // Navigate immediately
+    // Await database write & AI generation before redirecting to prevent 404 race conditions
+    try {
+      const res = await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...auditInput, client_slug: slug }),
+      });
+      if (res.ok) {
+        const resData = await res.json();
+        aiSummary = resData.ai_summary;
+        summaryGenerated = !!resData.ai_summary;
+      }
+    } catch (err) {
+      console.warn('[SpendForm] DB persist failed:', err);
+    }
+
+    // Store completed results in sessionStorage
+    sessionStorage.setItem(
+      `audit_${slug}`,
+      JSON.stringify({ slug, input: auditInput, ...auditOutput, ai_summary: aiSummary, summary_generated: summaryGenerated })
+    );
+
+    setSubmitting(false);
+    // Navigate only after the audit is fully saved
     router.push(`/audit/${slug}`);
   }
 
