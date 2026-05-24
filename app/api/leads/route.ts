@@ -75,8 +75,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Send email (non-blocking — never fails the response)
-  sendConfirmationEmail({ email, tier, audit_id }).catch(() => {});
+  // Send email (awaited so the serverless function stays active until the email finishes sending)
+  try {
+    await sendConfirmationEmail({ email, tier, audit_id });
+  } catch (emailErr) {
+    console.error('[POST /api/leads] Email delivery failed:', emailErr);
+  }
 
   return NextResponse.json({ message: 'Report sent! Check your inbox.', tier }, { status: 201 });
 }
